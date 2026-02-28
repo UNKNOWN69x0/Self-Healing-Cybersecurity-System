@@ -1,3 +1,9 @@
 psutil
 pywin32
 customtkinter
+scikit-learn
+numpy
+joblib
+plyer
+pystray
+Pillow

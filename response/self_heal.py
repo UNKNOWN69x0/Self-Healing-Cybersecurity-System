@@ -51,3 +51,47 @@ def heal(threat):
     # -------- Brute force handling --------
     elif t == "BRUTE_FORCE":
         log_event("CRITICAL: Brute force attack detected")
+
+    # -------- ML anomaly handling --------
+    elif t == "ML_ANOMALY":
+        detail = threat.get("detail", "")
+        log_event(f"WARNING: ML anomaly detected — {detail}")
+
+    # -------- Port scan handling --------
+    elif t == "PORT_SCAN":
+        ip = threat.get("ip")
+        if ip and ip not in SAFE_IPS and ip not in BLOCKED_IPS:
+            os.system(
+                f'netsh advfirewall firewall add rule name="SHCS_Block_{ip}" '
+                f'dir=in action=block remoteip={ip}'
+            )
+            BLOCKED_IPS.add(ip)
+            log_event(f"Blocked port-scanning IP {ip}")
+
+    # -------- Data exfiltration handling --------
+    elif t == "DATA_EXFILTRATION":
+        detail = threat.get("detail", "")
+        log_event(f"CRITICAL: Data exfiltration detected — {detail}")
+
+    # -------- Suspicious port handling --------
+    elif t == "SUSPICIOUS_PORT":
+        ip = threat.get("ip")
+        port = threat.get("port")
+        if ip and ip not in SAFE_IPS and ip not in BLOCKED_IPS:
+            os.system(
+                f'netsh advfirewall firewall add rule name="SHCS_Block_{ip}" '
+                f'dir=in action=block remoteip={ip}'
+            )
+            BLOCKED_IPS.add(ip)
+        log_event(f"Blocked connection on suspicious port {port} from {ip}")
+
+    # -------- DNS tamper handling --------
+    elif t == "DNS_TAMPER":
+        log_event("CRITICAL: DNS tampering detected — resetting DNS to 8.8.8.8 / 1.1.1.1")
+        os.system('netsh interface ip set dns "Local Area Connection" static 8.8.8.8')
+        os.system('netsh interface ip add dns "Local Area Connection" 1.1.1.1 index=2')
+
+    # -------- Firewall disabled handling --------
+    elif t == "FIREWALL_DISABLED":
+        log_event("CRITICAL: Windows Firewall is disabled — re-enabling all profiles")
+        os.system("netsh advfirewall set allprofiles state on")
