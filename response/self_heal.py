@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import os
 from utils.logger import log_event
 
@@ -7,6 +6,7 @@ SAFE_IPS = {"127.0.0.1", "::1"}
 
 # Memory of already blocked IPs (runtime)
 BLOCKED_IPS = set()
+
 
 def heal(threat):
     t = threat.get("type")
@@ -40,48 +40,14 @@ def heal(threat):
         BLOCKED_IPS.add(ip)
         log_event(f"Blocked IP {ip}")
 
+    # -------- CPU handling --------
+    elif t == "HIGH_CPU":
+        log_event("WARNING: High CPU usage detected")
 
-=======
-import os
-from utils.logger import log_event
+    # -------- Memory handling --------
+    elif t == "HIGH_MEMORY":
+        log_event("WARNING: High memory usage detected")
 
-CRITICAL_PIDS = {0, 4}
-SAFE_IPS = {"127.0.0.1", "::1"}
-
-# Memory of already blocked IPs (runtime)
-BLOCKED_IPS = set()
-
-def heal(threat):
-    t = threat.get("type")
-
-    # -------- Process handling --------
-    if t == "MALICIOUS_PROCESS":
-        pid = threat.get("pid")
-
-        if pid in CRITICAL_PIDS or pid is None:
-            return
-
-        os.system(f"taskkill /PID {pid} /F")
-        log_event(f"Terminated process PID {pid}")
-
-    # -------- Network handling --------
-    elif t == "SUSPICIOUS_IP":
-        ip = threat.get("ip")
-
-        if ip is None or ip in SAFE_IPS:
-            return
-
-        # Prevent repeated blocking
-        if ip in BLOCKED_IPS:
-            return
-
-        os.system(
-            f'netsh advfirewall firewall add rule name="SHCS_Block_{ip}" '
-            f'dir=in action=block remoteip={ip}'
-        )
-
-        BLOCKED_IPS.add(ip)
-        log_event(f"Blocked IP {ip}")
-
-
->>>>>>> ff48c825f9fd64ae919885467895d38972d81c36
+    # -------- Brute force handling --------
+    elif t == "BRUTE_FORCE":
+        log_event("CRITICAL: Brute force attack detected")
