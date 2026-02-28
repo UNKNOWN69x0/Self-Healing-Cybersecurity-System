@@ -1,0 +1,30 @@
+{
+    "thresholds": {
+        "cpu_percent": 90,
+        "memory_percent": 95,
+        "failed_login_limit": 5
+    },
+    "process_blacklist": [
+        "xmrig",
+        "miner",
+        "hacktool"
+    ],
+    "trusted_ip_prefixes": [
+        "13.",
+        "15.",
+        "20.",
+        "40.",
+        "52.",
+        "142.250.",
+        "142.251.",
+        "104.16.",
+        "104.17.",
+        "104.18."
+    ],
+    "safe_ips": [
+        "127.0.0.1",
+        "::1"
+    ],
+    "monitoring_interval_seconds": 5,
+    "log_directory": "C:\\ProgramData\\SHCS"
+}

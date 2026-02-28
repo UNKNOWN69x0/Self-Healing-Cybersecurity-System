@@ -1,14 +1,24 @@
-<<<<<<< HEAD
+import json
+import os
 import psutil
 
-SAFE_IPS = {"127.0.0.1", "::1"}
+_config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config.json")
 
-# Known cloud / trusted ranges (basic)
-TRUSTED_PREFIXES = (
+_DEFAULT_SAFE_IPS = ["127.0.0.1", "::1"]
+_DEFAULT_TRUSTED_PREFIXES = (
     "13.", "15.", "20.", "40.", "52.",     # Microsoft / Azure
     "142.250.", "142.251.",               # Google
     "104.16.", "104.17.", "104.18.",      # Cloudflare
 )
+
+
+def _load_config():
+    try:
+        with open(_config_path, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
 
 def is_private_ip(ip):
     return (
@@ -17,10 +27,16 @@ def is_private_ip(ip):
         ip.startswith("172.")
     )
 
-def is_trusted_ip(ip):
-    return ip.startswith(TRUSTED_PREFIXES)
+
+def is_trusted_ip(ip, trusted_prefixes):
+    return ip.startswith(tuple(trusted_prefixes))
+
 
 def get_suspicious_connections():
+    config = _load_config()
+    safe_ips = set(config.get("safe_ips", _DEFAULT_SAFE_IPS))
+    trusted_prefixes = config.get("trusted_ip_prefixes", _DEFAULT_TRUSTED_PREFIXES)
+
     suspicious = []
 
     for conn in psutil.net_connections(kind="inet"):
@@ -29,13 +45,13 @@ def get_suspicious_connections():
 
         ip = conn.raddr.ip
 
-        if ip in SAFE_IPS:
+        if ip in safe_ips:
             continue
 
         if is_private_ip(ip):
             continue
 
-        if is_trusted_ip(ip):
+        if is_trusted_ip(ip, trusted_prefixes):
             continue
 
         suspicious.append({
@@ -44,52 +60,3 @@ def get_suspicious_connections():
         })
 
     return suspicious
-
-=======
-import psutil
-
-SAFE_IPS = {"127.0.0.1", "::1"}
-
-# Known cloud / trusted ranges (basic)
-TRUSTED_PREFIXES = (
-    "13.", "15.", "20.", "40.", "52.",     # Microsoft / Azure
-    "142.250.", "142.251.",               # Google
-    "104.16.", "104.17.", "104.18.",      # Cloudflare
-)
-
-def is_private_ip(ip):
-    return (
-        ip.startswith("10.") or
-        ip.startswith("192.168.") or
-        ip.startswith("172.")
-    )
-
-def is_trusted_ip(ip):
-    return ip.startswith(TRUSTED_PREFIXES)
-
-def get_suspicious_connections():
-    suspicious = []
-
-    for conn in psutil.net_connections(kind="inet"):
-        if not conn.raddr:
-            continue
-
-        ip = conn.raddr.ip
-
-        if ip in SAFE_IPS:
-            continue
-
-        if is_private_ip(ip):
-            continue
-
-        if is_trusted_ip(ip):
-            continue
-
-        suspicious.append({
-            "ip": ip,
-            "pid": conn.pid
-        })
-
-    return suspicious
-
->>>>>>> ff48c825f9fd64ae919885467895d38972d81c36

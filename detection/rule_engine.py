@@ -1,49 +1,51 @@
-<<<<<<< HEAD
+import json
+import os
+
+_config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config.json")
+
+
+def _load_config():
+    try:
+        with open(_config_path, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
 def analyze(data):
+    config = _load_config()
+    thresholds = config.get("thresholds", {})
+    cpu_threshold = thresholds.get("cpu_percent", 90)
+    memory_threshold = thresholds.get("memory_percent", 95)
+    failed_login_limit = thresholds.get("failed_login_limit", 5)
+
     threats = []
 
     system = data.get("system", {})
-    if system.get("cpu", 0) > 90:
-        threats.append({"type": "high_cpu"})
+    if system.get("cpu", 0) > cpu_threshold:
+        threats.append({"type": "HIGH_CPU", "severity": "HIGH"})
+
+    if system.get("memory", 0) > memory_threshold:
+        threats.append({"type": "HIGH_MEMORY", "severity": "HIGH"})
 
     processes = data.get("processes", [])
     for proc in processes:
         threats.append({
-            "type": "suspicious_process",
+            "type": "MALICIOUS_PROCESS",
+            "severity": "CRITICAL",
             "pid": proc.get("pid")
         })
 
     network = data.get("network", [])
     for conn in network:
         threats.append({
-            "type": "suspicious_connection",
+            "type": "SUSPICIOUS_IP",
+            "severity": "MEDIUM",
             "ip": conn.get("ip")
         })
 
-    return threats
-
-=======
-def analyze(data):
-    threats = []
-
-    system = data.get("system", {})
-    if system.get("cpu", 0) > 90:
-        threats.append({"type": "high_cpu"})
-
-    processes = data.get("processes", [])
-    for proc in processes:
-        threats.append({
-            "type": "suspicious_process",
-            "pid": proc.get("pid")
-        })
-
-    network = data.get("network", [])
-    for conn in network:
-        threats.append({
-            "type": "suspicious_connection",
-            "ip": conn.get("ip")
-        })
+    failed_logins = data.get("failed_logins", 0)
+    if failed_logins > failed_login_limit:
+        threats.append({"type": "BRUTE_FORCE", "severity": "CRITICAL"})
 
     return threats
-
->>>>>>> ff48c825f9fd64ae919885467895d38972d81c36
