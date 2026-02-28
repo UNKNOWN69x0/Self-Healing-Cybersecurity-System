@@ -2,13 +2,28 @@
     "thresholds": {
         "cpu_percent": 90,
         "memory_percent": 95,
-        "failed_login_limit": 5
+        "failed_login_limit": 5,
+        "bandwidth_alert_mbps": 10,
+        "port_scan_threshold": 5
+    },
+    "ml": {
+        "enabled": true,
+        "min_training_samples": 20,
+        "retrain_interval": 50,
+        "contamination": 0.1
+    },
+    "notifications": {
+        "enabled": true,
+        "min_severity": "MEDIUM"
     },
     "process_blacklist": [
         "xmrig",
         "miner",
-        "hacktool"
+        "hacktool",
+        "coinhive",
+        "cryptonight"
     ],
+    "suspicious_ports": [4444, 5555, 6666, 1337, 31337, 8443, 9001],
     "trusted_ip_prefixes": [
         "13.",
         "15.",
