@@ -14,40 +14,42 @@ class TestSelfHeal(unittest.TestCase):
         # Reset shared state before each test
         self_heal.BLOCKED_IPS.clear()
 
-    @patch("response.self_heal.os.system")
+    @patch("response.self_heal.subprocess.run")
     @patch("response.self_heal.log_event")
-    def test_heal_malicious_process(self, mock_log, mock_system):
+    def test_heal_malicious_process(self, mock_log, mock_run):
         self_heal.heal({"type": "MALICIOUS_PROCESS", "pid": 9999})
-        mock_system.assert_called_once_with("taskkill /PID 9999 /F")
+        mock_run.assert_called_once_with(
+            ["taskkill", "/PID", "9999", "/F"], capture_output=True
+        )
         mock_log.assert_called()
 
-    @patch("response.self_heal.os.system")
+    @patch("response.self_heal.subprocess.run")
     @patch("response.self_heal.log_event")
-    def test_heal_malicious_process_skips_critical_pid(self, mock_log, mock_system):
+    def test_heal_malicious_process_skips_critical_pid(self, mock_log, mock_run):
         self_heal.heal({"type": "MALICIOUS_PROCESS", "pid": 4})
-        mock_system.assert_not_called()
+        mock_run.assert_not_called()
 
-    @patch("response.self_heal.os.system")
+    @patch("response.self_heal.subprocess.run")
     @patch("response.self_heal.log_event")
-    def test_heal_suspicious_ip(self, mock_log, mock_system):
+    def test_heal_suspicious_ip(self, mock_log, mock_run):
         self_heal.heal({"type": "SUSPICIOUS_IP", "ip": "1.2.3.4"})
-        mock_system.assert_called_once()
-        call_args = mock_system.call_args[0][0]
-        self.assertIn("1.2.3.4", call_args)
+        mock_run.assert_called_once()
+        call_args = mock_run.call_args[0][0]
+        self.assertTrue(any("1.2.3.4" in str(a) for a in call_args))
         mock_log.assert_called()
 
-    @patch("response.self_heal.os.system")
+    @patch("response.self_heal.subprocess.run")
     @patch("response.self_heal.log_event")
-    def test_heal_suspicious_ip_skips_safe_ip(self, mock_log, mock_system):
+    def test_heal_suspicious_ip_skips_safe_ip(self, mock_log, mock_run):
         self_heal.heal({"type": "SUSPICIOUS_IP", "ip": "127.0.0.1"})
-        mock_system.assert_not_called()
+        mock_run.assert_not_called()
 
-    @patch("response.self_heal.os.system")
+    @patch("response.self_heal.subprocess.run")
     @patch("response.self_heal.log_event")
-    def test_heal_suspicious_ip_no_duplicate_block(self, mock_log, mock_system):
+    def test_heal_suspicious_ip_no_duplicate_block(self, mock_log, mock_run):
         self_heal.heal({"type": "SUSPICIOUS_IP", "ip": "5.5.5.5"})
         self_heal.heal({"type": "SUSPICIOUS_IP", "ip": "5.5.5.5"})
-        self.assertEqual(mock_system.call_count, 1)
+        self.assertEqual(mock_run.call_count, 1)
 
     @patch("response.self_heal.log_event")
     def test_heal_high_cpu(self, mock_log):

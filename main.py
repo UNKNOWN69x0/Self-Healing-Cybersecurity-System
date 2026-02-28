@@ -17,4 +17,5 @@ from agent import start_agent
 
 if __name__ == "__main__":
     if "--agent" in sys.argv:
+        print("SHCS Agent starting...")
         start_agent()

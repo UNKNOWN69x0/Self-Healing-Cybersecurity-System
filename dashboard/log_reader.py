@@ -1,20 +1,26 @@
 import os
 
-LOG_FILE = r"C:\ProgramData\SHCS\shcs.log"
+_PRIMARY_LOG_FILE = r"C:\ProgramData\SHCS\shcs.log"
+_FALLBACK_LOG_FILE = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logs", "shcs.log"
+)
+
 
 def read_last_logs():
-    try:
-        if not os.path.exists(LOG_FILE):
-            return ""
+    for log_file in [_PRIMARY_LOG_FILE, _FALLBACK_LOG_FILE]:
+        try:
+            if not os.path.exists(log_file):
+                continue
 
-        with open(LOG_FILE, "r", encoding="utf-8") as f:
-            lines = f.readlines()
+            with open(log_file, "r", encoding="utf-8") as f:
+                lines = f.readlines()
 
-       
-        lines.reverse()
+            lines.reverse()
 
-        return "".join(lines)
+            return "".join(lines)
 
-    except Exception:
-        return ""
+        except (OSError, PermissionError):
+            continue
+
+    return ""
 

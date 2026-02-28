@@ -25,12 +25,15 @@ def _load_config():
 def start_agent(stop_event=None):
     try:
         log_event("Agent entry reached")
+        print("Agent entry reached")
         time.sleep(2)
         log_event("Agent initialized, entering main loop")
+        print("Agent initialized, entering main loop")
 
         while True:
             if stop_event is not None and stop_event.is_set():
                 log_event("Agent stopping gracefully")
+                print("Agent stopping gracefully")
                 break
 
             try:
@@ -48,6 +51,7 @@ def start_agent(stop_event=None):
 
                 # 2. HEARTBEAT (ALWAYS)
                 log_event("Heartbeat: Monitoring active")
+                print("Heartbeat: Monitoring active")
 
                 # 3. Optional lightweight visibility
                 log_event(
@@ -62,9 +66,11 @@ def start_agent(stop_event=None):
                 if threats:
                     for threat in threats:
                         log_event(f"Threat detected: {threat}")
+                        print(f"Threat detected: {threat}")
                         self_heal.heal(threat)
                 else:
                     log_event("No threats detected")
+                    print("No threats detected")
 
             except Exception as e:
                 log_event(f"Runtime error: {e}")
