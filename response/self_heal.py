@@ -1,4 +1,4 @@
-import os
+import subprocess
 from utils.logger import log_event
 
 CRITICAL_PIDS = {0, 4}
@@ -18,7 +18,7 @@ def heal(threat):
         if pid in CRITICAL_PIDS or pid is None:
             return
 
-        os.system(f"taskkill /PID {pid} /F")
+        subprocess.run(["taskkill", "/PID", str(pid), "/F"], capture_output=True)
         log_event(f"Terminated process PID {pid}")
 
     # -------- Network handling --------
@@ -32,9 +32,13 @@ def heal(threat):
         if ip in BLOCKED_IPS:
             return
 
-        os.system(
-            f'netsh advfirewall firewall add rule name="SHCS_Block_{ip}" '
-            f'dir=in action=block remoteip={ip}'
+        subprocess.run(
+            [
+                "netsh", "advfirewall", "firewall", "add", "rule",
+                f"name=SHCS_Block_{ip}",
+                "dir=in", "action=block", f"remoteip={ip}",
+            ],
+            capture_output=True,
         )
 
         BLOCKED_IPS.add(ip)
